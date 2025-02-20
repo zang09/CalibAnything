@@ -11,8 +11,16 @@ This package provides an automatic and target-less LiDAR-camera extrinsic calibr
 ```shell
 git clone https://github.com/OpenCalib/CalibAnything.git
 cd CalibAnything
+
 # mkdir build
 mkdir -p build && cd build
+
+# install dependencies
+sudo apt-get update
+sudo apt-get install libpcl-dev
+sudo apt-get install libopencv-dev
+sudo apt install libjsoncpp-dev
+
 # build
 cmake .. && make
 ```
