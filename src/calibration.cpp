@@ -24,7 +24,7 @@ void Create_ColorBar()
         pColor[ba * 3 + 1] = S[s / 13];
         pColor[ba * 3 + 2] = V[v / 13 / 3];
     }
-    cv::cvtColor(color, color_bar, CV_HSV2BGR);
+    cv::cvtColor(color, color_bar, cv::COLOR_HSV2BGR);
 }
 
 
@@ -254,15 +254,15 @@ int Calibrator::Segment_pc(const pcl::PointCloud<pcl::PointXYZI>::Ptr cloud,
     return seg_indices.size();
 }
 
-void Calibrator::Calibrate()
+void Calibrator::Calibrate(std::string save_path)
 {
     CalRatio();
     std::cout << "----------Start calibration----------" << std::endl;
-    VisualProjectionSegment(extrinsic_, "init_proj_seg.png", 0);
-    VisualProjection(extrinsic_, "init_proj.png", 0);
+    VisualProjectionSegment(extrinsic_, save_path + "/init_proj_seg.png", 0);
+    VisualProjection(extrinsic_, save_path + "/init_proj.png", 0);
     if (params_.is_gt_available){
-        VisualProjectionSegment(params_.extrinsic_gt, "gt_proj_seg.png", 0);
-        VisualProjection(params_.extrinsic_gt, "gt_proj.png", 0);
+        VisualProjectionSegment(params_.extrinsic_gt, save_path + "/gt_proj_seg.png", 0);
+        VisualProjection(params_.extrinsic_gt, save_path + "/gt_proj.png", 0);
     }
     max_score_ = CalScore(extrinsic_);
     float rot_init = params_.search_range_rot + 0.5;
@@ -282,8 +282,8 @@ void Calibrator::Calibrate()
     {
         PrintCurrentError();
     }
-    VisualProjectionSegment(extrinsic_, "refined_proj_seg.png", 0);
-    VisualProjection(extrinsic_, "refined_proj.png", 0);
+    VisualProjectionSegment(extrinsic_, save_path + "/refined_proj_seg.png", 0);
+    VisualProjection(extrinsic_, save_path + "/refined_proj.png", 0);
 }
 
 double Calibrator::CalScore(Eigen::Matrix4f T)
@@ -516,6 +516,13 @@ void Calibrator::PrintCurrentError()
     Eigen::Matrix4f error_T = params_.extrinsic_gt * extrinsic_.inverse();
     std::cout << "Error(roll pitch yaw x y z): " << RAD2DEG(Util::GetRoll(error_T)) << " " << RAD2DEG(Util::GetPitch(error_T)) << " " << RAD2DEG(Util::GetYaw(error_T))
               << " " << Util::GetX(error_T) << " " << Util::GetY(error_T) << " " << Util::GetZ(error_T) << std::endl;
+    
+    // Eigen::Vector3f translation_error = error_T.block<3, 1>(0, 3);
+    // Eigen::Vector3f rotation_error = error_T.block<3, 3>(0, 0).eulerAngles(0, 1, 2);
+
+    // std::cout << "Translation Error (x, y, z): " << translation_error.transpose() << std::endl;
+    // std::cout << "Rotation Error (roll, pitch, yaw): " << RAD2DEG(rotation_error[0]) << " " 
+    //           << RAD2DEG(rotation_error[1]) << " " << RAD2DEG(rotation_error[2]) << std::endl;
 }
 
 Eigen::Matrix4f Calibrator::GetFinalTransformation()

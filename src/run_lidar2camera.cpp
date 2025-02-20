@@ -104,9 +104,9 @@ void readConfig(std::string json_file, JsonParams &json_params)
     ifs.close();
 }
 
-void SaveExtrinsic(Eigen::Matrix4f T)
+void SaveExtrinsic(std::string save_path, Eigen::Matrix4f T)
 {
-    std::string file_name = "extrinsic.txt";
+    std::string file_name = save_path + "/extrinsic.txt";
     
     std::ofstream ofs(file_name);
     if (!ofs.is_open())
@@ -122,7 +122,7 @@ void SaveExtrinsic(Eigen::Matrix4f T)
 
     ofs.close();
 
-    std::cout << "Calibration result was saved to file calib_result.txt" << std::endl;
+    std::cout << "Calibration result was saved to file extrinsic.txt" << std::endl;
 }
 
 int main(int argc, char *argv[]) {
@@ -137,11 +137,14 @@ int main(int argc, char *argv[]) {
     JsonParams json_params;
     readConfig(json_file, json_params);
 
+    std::string save_path = json_file.substr(0, json_file.find_last_of('/'));
+    std::cout << "Save path: " << save_path << std::endl;
+
     auto time_begin = std::chrono::steady_clock::now();
     Calibrator calibrator(json_params);
-    calibrator.Calibrate();
+    calibrator.Calibrate(save_path);
     Eigen::Matrix4f refined_extrinsic = calibrator.GetFinalTransformation();
-    SaveExtrinsic(refined_extrinsic);
+    SaveExtrinsic(save_path, refined_extrinsic);
     auto time_end = std::chrono::steady_clock::now();
     std::cout << "Total calib time: "
                 << std::chrono::duration<double>(time_end - time_begin).count()
